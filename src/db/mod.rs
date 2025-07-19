@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize, AdminGatedStruct)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub role: UserRole,
@@ -9,6 +9,7 @@ pub struct User {
     pub todos: Vec<String>
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UserRole {
     Admin,
     User,
@@ -35,7 +36,8 @@ impl Db {
             id: self.index.to_string(),
             username,
             password,
-            todos: vec![]
+            todos: vec![],
+            role: UserRole::User,
         });
         self.index = self.index + 1;
         (self.index - 1).to_string()
