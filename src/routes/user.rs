@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use traity_trait::todo_app;
 
 use actix_web::{web::{Data, Json}, HttpResponse, Responder};
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -7,11 +8,13 @@ use actix_web::{post};
 
 use crate::db::{self, UserRole};
 
+#[todo_app]
 #[derive(Serialize, Deserialize)]
 struct CreateUserResponse {
     id: String
 }
 
+#[todo_app]
 #[derive(Serialize, Deserialize)]
 struct SigninResponse {
     token: String

@@ -1,21 +1,24 @@
 use std::sync::{Arc, Mutex};
-
+use traity_trait::todo_app;
 use actix_web::web::{Data, Json};
 use actix_web::{HttpResponse, Responder, get, post};
 use serde::{Serialize, Deserialize};
 use crate::middleware::UserId;
 use crate::db::Db;
 
+#[todo_app]
 #[derive(Serialize, Deserialize)]
 struct CreateTodoResponse {
     message: String
 }
 
+#[todo_app]
 #[derive(Serialize, Deserialize)]
 struct CreateTodoRequest {
     pub text: String
 }
 
+#[todo_app]
 #[derive(Serialize, Deserialize)]
 struct GetTodosResponse {
     todos: Vec<String>
@@ -35,6 +38,6 @@ pub async fn get_todos(user_id: UserId, db: Data<Arc<Mutex<Db>>>) -> impl Respon
     let db = db.lock().unwrap();
     let todos = db.get_todos(user_id.0);
     HttpResponse::Ok().json(GetTodosResponse {
-        todos
+        todos: todos
     })
 }
