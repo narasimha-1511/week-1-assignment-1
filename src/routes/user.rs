@@ -8,11 +8,6 @@ use actix_web::{post};
 use crate::db::{self, UserRole};
 
 #[derive(Serialize, Deserialize)]
-struct GetUsersResponse {
-    users: Vec<db::User>
-}
-
-#[derive(Serialize, Deserialize)]
 struct CreateUserResponse {
     id: String
 }
