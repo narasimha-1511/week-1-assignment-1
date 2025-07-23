@@ -2,44 +2,43 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields, FieldsNamed};
 
-fn todo_app_impl(input: DeriveInput) -> Result<proc_macro2::TokenStream, syn::Error> {    
+fn todo_app_impl(input: &mut DeriveInput) -> Result<proc_macro2::TokenStream, syn::Error> {    
+    match &mut input.data {
+        Data::Struct(data) => {
+            match &mut data.fields {
+                Fields::Named(fields) => {
+                    for field in fields.named.iter_mut() {
+                        let field_name = field.ident.as_ref().unwrap();
+                        let pascal_name = to_pascal_case(&field_name.to_string());
+                        let renamed  = format!("TodoApp{}",pascal_name);
+                        
+                        let rename_attr: syn::Attribute = syn::parse_quote!(
+                            #[serde(rename = #renamed)]
+                        );
+                        field.attrs.push(rename_attr);
+                    }
+                }
+                _ => panic!("Only Named fields are allowed")
+            }
+        },
+        _ => panic!("Only Structs are allowed")
+       }
     
+       Ok(quote! {
+        #input
+       })
 }
 
 #[proc_macro_attribute]
 pub fn todo_app(_args: TokenStream, input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    match todo_app_impl(input) {
+    let mut input = parse_macro_input!(input as DeriveInput);
+    match todo_app_impl(&mut input) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.to_compile_error().into(),
     }
 }
 
-fn transform_fields(fields: &FieldsNamed) -> proc_macro2::TokenStream {
-    let transformed = fields.named.iter().map(|field| {
-        let field_name = field.ident.as_ref().unwrap();
-        let field_type = &field.ty;
-        let field_vis = &field.vis;
-        let field_attrs = &field.attrs;
-        
-        // Convert field name to PascalCase and prepend TodoApp
-        let pascal_case_name = to_pascal_case(&field_name.to_string());
-        let new_field_name = format!("TodoApp{}", pascal_case_name);
-        
-        // Keep original field name in struct, but rename for serialization
-        quote! {
-            #(#field_attrs)*
-            #[serde(rename = #new_field_name)]
-            #field_vis #field_name: #field_type
-        }
-    });
-    
-    quote! {
-        #(#transformed,)*
-    }
-}
-
-fn to_pascal_case(s: &str) -> String {
+fn to_pascal_case(s: &String) -> String {
     s.split('_')
         .map(|word| {
             let mut chars = word.chars();
